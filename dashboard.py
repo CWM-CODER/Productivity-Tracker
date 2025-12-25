@@ -16,8 +16,29 @@ def reset_logs_db():
     conn.close()
 
 # Load trained ML model
-with open("ml/productivity_model.pkl", "rb") as f:
-    ml_model = pickle.load(f)
+import os
+import pickle
+from ml.semantic_model import ProductivityClassifier
+import pandas as pd
+
+MODEL_PATH = "ml/productivity_model.pkl"
+BASE_MODEL_PATH = "ml/base_model.pkl"
+
+if os.path.exists(MODEL_PATH):
+    with open(MODEL_PATH, "rb") as f:
+        ml_model = pickle.load(f)
+else:
+    # First run on cloud → train base model
+    df = pd.read_csv("ml/productivity_dataset_500.csv")
+    texts = df["text"].tolist()
+    labels = df["label"].tolist()
+
+    ml_model = ProductivityClassifier()
+    ml_model.initial_train(texts, labels)
+
+    with open(MODEL_PATH, "wb") as f:
+        pickle.dump(ml_model, f)
+
 
 st.set_page_config(page_title="Productivity Analysis", layout="centered")
 st.title("📊 Productivity Tracker Dashboard")
