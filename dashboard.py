@@ -1,12 +1,28 @@
-import sys
+
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), "ml"))
-from semantic_model import ProductivityClassifier
 
 import streamlit as st
 import pandas as pd
 import sqlite3
 import pickle
+# ---- Ensure DB exists (Cloud-safe) ----
+os.makedirs("db", exist_ok=True)
+
+conn = sqlite3.connect("db/tracker.db")
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT,
+    activity TEXT,
+    duration INTEGER,
+    description TEXT
+)
+""")
+
+conn.commit()
+conn.close()
 
 def reset_logs_db():
     conn = sqlite3.connect("db/tracker.db")
@@ -38,7 +54,6 @@ else:
 
     with open(MODEL_PATH, "wb") as f:
         pickle.dump(ml_model, f)
-
 
 st.set_page_config(page_title="Productivity Analysis", layout="centered")
 st.title("📊 Productivity Tracker Dashboard")
@@ -83,10 +98,8 @@ st.sidebar.header("⚙️ System Controls")
 st.sidebar.header("📝 Actions")
 
 if st.sidebar.button("➕ Log New Activity"):
-    st.markdown(
-        '<meta http-equiv="refresh" content="0; url=http://127.0.0.1:5000/log_form">',
-        unsafe_allow_html=True
-    )
+    st.info("Logging new activities is available in local Flask mode.")
+
 
 if st.sidebar.button("🔄 Factory Reset (Model + Logs)"):
     # 1. Reset model to base
@@ -139,9 +152,3 @@ for i, row in df.iterrows():
             st.success("Model updated ✔")
             st.rerun()
 
-def reset_logs_db():
-    conn = sqlite3.connect("db/tracker.db")
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM logs")
-    conn.commit()
-    conn.close()
