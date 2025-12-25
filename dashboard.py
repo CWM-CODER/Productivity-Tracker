@@ -1,28 +1,12 @@
-
+import sys
 import os
+sys.path.append(os.path.join(os.path.dirname(__file__), "ml"))
+from semantic_model import ProductivityClassifier
 
 import streamlit as st
 import pandas as pd
 import sqlite3
 import pickle
-# ---- Ensure DB exists (Cloud-safe) ----
-os.makedirs("db", exist_ok=True)
-
-conn = sqlite3.connect("db/tracker.db")
-cursor = conn.cursor()
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT,
-    activity TEXT,
-    duration INTEGER,
-    description TEXT
-)
-""")
-
-conn.commit()
-conn.close()
 
 def reset_logs_db():
     conn = sqlite3.connect("db/tracker.db")
@@ -32,28 +16,8 @@ def reset_logs_db():
     conn.close()
 
 # Load trained ML model
-import os
-import pickle
-from ml.semantic_model import ProductivityClassifier
-import pandas as pd
-
-MODEL_PATH = "ml/productivity_model.pkl"
-BASE_MODEL_PATH = "ml/base_model.pkl"
-
-if os.path.exists(MODEL_PATH):
-    with open(MODEL_PATH, "rb") as f:
-        ml_model = pickle.load(f)
-else:
-    # First run on cloud → train base model
-    df = pd.read_csv("ml/productivity_dataset_500.csv")
-    texts = df["text"].tolist()
-    labels = df["label"].tolist()
-
-    ml_model = ProductivityClassifier()
-    ml_model.initial_train(texts, labels)
-
-    with open(MODEL_PATH, "wb") as f:
-        pickle.dump(ml_model, f)
+with open("ml/productivity_model.pkl", "rb") as f:
+    ml_model = pickle.load(f)
 
 st.set_page_config(page_title="Productivity Analysis", layout="centered")
 st.title("📊 Productivity Tracker Dashboard")
@@ -98,8 +62,10 @@ st.sidebar.header("⚙️ System Controls")
 st.sidebar.header("📝 Actions")
 
 if st.sidebar.button("➕ Log New Activity"):
-    st.info("Logging new activities is available in local Flask mode.")
-
+    st.markdown(
+        '<meta http-equiv="refresh" content="0; url=http://127.0.0.1:5000/log_form">',
+        unsafe_allow_html=True
+    )
 
 if st.sidebar.button("🔄 Factory Reset (Model + Logs)"):
     # 1. Reset model to base
@@ -152,3 +118,9 @@ for i, row in df.iterrows():
             st.success("Model updated ✔")
             st.rerun()
 
+def reset_logs_db():
+    conn = sqlite3.connect("db/tracker.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM logs")
+    conn.commit()
+    conn.close()
