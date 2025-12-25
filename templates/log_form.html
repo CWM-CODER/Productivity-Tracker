@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log Activity</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Log Your Activity</h1>
+        <form class="log-form" action="/log_form" method="post">
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required>
+
+            <label for="activity">Select Activity:</label>
+            <select id="activity" name="activity" required>
+                <option value="">--Choose an activity--</option>
+                <option value="Study">Study</option>
+                <option value="Exercise">Exercise</option>
+                <option value="Sleep">Sleep</option>
+                <option value="Play">Play</option>
+                <option value="Phone">Phone</option>
+                <option value="Reading">Reading</option>
+            </select>
+
+            <label for="duration">Duration (in minutes):</label>
+            <input type="number" id="duration" name="duration" required>
+
+            <label for="description">Description (optional):</label>
+            <input type="text" id="description" name="description" placeholder="e.g. Studied DSA">
+            
+            <button type="submit"><a href="http://localhost:8501" target="_blank"></a>View Analysis</a></button>
+        </form>
+        <a href="http://localhost:8501">
+            <button type="button">📊 Back to Dashboard</button>
+        </a>
+
+    </div>
+</body>
+</html>
